@@ -1,96 +1,75 @@
-# [Project] - Current State
+# PredelQ - Current State
 
-> **Last Updated:** [DATE]
-> **Version:** v[X.Y.Z]
-> **Status:** [Sprint N] [Status]
+> Last Updated: 2025-12-30
 
----
+## Project Status
 
-## What [Project] Can Do Now
-
-### Core Capabilities
-- ✅ [Capability 1]
-- ✅ [Capability 2]
-- 🟡 [Capability 3 - partial]
-- ❌ [Capability 4 - not started]
-
-### Available [Tools/Features/APIs]
-
-| Category | Items |
-|----------|-------|
-| [Category 1] | [List] |
-| [Category 2] | [List] |
-
----
-
-## Sprint History
-
-| Sprint | Focus | Version | Status |
-|--------|-------|---------|--------|
-| 1 | [Focus] | v0.1.0 | ✅ Complete |
-| 2 | [Focus] | v0.2.0 | ✅ Complete |
-| 3 | [Focus] | - | 🔄 In Progress |
-
----
-
-## What's Next (Sprint [N])
-
-**Focus:** [One-line description]
-
-**Documents:**
-- Design: `docs/predelq/SPRINT_N_INVENTORY.md`
-- Plan: `docs/predelq/SPRINT_N_PLAN.md`
-
-**Key deliverables:**
-- [Deliverable 1]
-- [Deliverable 2]
+| Aspect | Status |
+|--------|--------|
+| **Phase** | Bootstrap |
+| **Sprint** | 0 - Setup |
+| **Blocker** | None |
 
 ---
 
 ## Credentials & Endpoints
 
-### Supabase
-| Key | Value |
-|-----|-------|
-| URL | `https://predelq.supabase.co` |
-| Project ID | `[project-id]` |
-| Service Role Key | `[key]` |
-| Management API Token | `[token]` |
-
-### Vercel
-| Key | Value |
-|-----|-------|
-| URL | `https://predelq.vercel.app` |
-| Team | `[team]` |
+> **Note:** Actual secrets are stored in GitHub Secrets or provided at session start.
+> GitHub PAT and Supabase keys should be provided when starting a Claude session.
 
 ### GitHub
 | Key | Value |
 |-----|-------|
-| Repo | `[owner]/[repo]` |
-| PAT | `[token]` |
+| Repo | `hsheth-ape/PredelQ` |
+| Username | `hsheth-ape` |
+| PAT | *Provide at session start* |
 
-### [Other Services]
+### Supabase
 | Key | Value |
 |-----|-------|
-| [Key] | `[value]` |
+| Management API Key | *Stored in GitHub Secrets: `SUPABASE_MANAGEMENT_API_KEY`* |
+| Project URL | *Not created yet* |
+| Project ID | *Not created yet* |
+
+### Modal
+| Key | Value |
+|-----|-------|
+| Bootstrap Gateway | `https://hsheth-ape--gibbon-bootstrap-run.modal.run` |
+
+### Vercel
+| Key | Value |
+|-----|-------|
+| URL | *Not deployed yet* |
 
 ---
 
-## Active Blockers
+## What Exists
 
-| Blocker | Impact | Owner |
-|---------|--------|-------|
-| [None] | | |
+### Infrastructure
+- [x] GitHub repo created
+- [x] GitHub secrets configured (SUPABASE_MANAGEMENT_API_KEY, MODAL_GATEWAY_URL)
+- [ ] Supabase project
+- [ ] Vercel deployment
+- [ ] Domain configured
+
+### Code
+- [ ] Frontend scaffolding
+- [ ] Backend API
+- [ ] Database schema
 
 ---
 
-## Restore Points
+## What\'s Next
 
-| Tag | Description | Date |
-|-----|-------------|------|
-| v0.1.0 | Sprint 1 complete | [DATE] |
-| v0.2.0 | Sprint 2 complete | [DATE] |
+1. Define what PredelQ is (requirements gathering)
+2. Create Supabase project
+3. Design initial schema
+4. Set up Vercel deployment
 
 ---
 
-*Updated: [DATE] | [Status]*
+## Open Questions
+
+- What problem does PredelQ solve?
+- Who is the target user?
+- What\'s the MVP scope?
