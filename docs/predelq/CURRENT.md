@@ -28,46 +28,62 @@ Raw Data → Metrics → Indicators (1-5) → Events → Actions
 | **Sprint** | 0 |
 | **Blocker** | None |
 | **Database** | ✅ Schema deployed, mock data loaded |
-| **Metabase** | ⏳ Ready to connect |
+| **Metabase** | ✅ Connected, views ready |
 
 ---
 
 ## What's Deployed
 
-### Database Schema (Supabase)
+### Database Schema (25 tables)
 
 | Layer | Tables | Status |
 |-------|--------|--------|
 | **Master Data** | oems, asset_models, customers, accounts, assets | ✅ 15 accounts |
 | **Transactions** | payments, repayment_schedule, delinquency_history | ✅ 63 payments |
 | **Raw Data** | raw_telemetry | ✅ Schema ready |
-| **Metrics** | metric_definitions, metric_values | ✅ 14 metrics, 37 values |
-| **Indicators** | indicator_definitions, indicator_values | ✅ 6 indicators, 15 values |
-| **Events** | event_definitions, events | ✅ 12 event types, 10 events |
-| **Operational** | asset/account/customer_current_state | ✅ All populated |
+| **Metrics** | metric_definitions, metric_values | ✅ 14 metrics |
+| **Indicators** | indicator_definitions, indicator_values | ✅ 6 indicators |
+| **Events** | event_types, event_definitions, events | ✅ 8 types, 12 defs, 7 open |
+| **Operational** | asset/account/customer_current_state | ✅ With risk scores |
 | **POIs** | pois, poi_visit_patterns | ✅ 15 POIs |
 
-### Mock Data Profile
+### Event Type Taxonomy
 
-| Category | Count | Notes |
-|----------|-------|-------|
-| Healthy accounts | 5 | Good utilization, on-time payments |
-| At-risk accounts | 5 | Declining utilization, late payments |
-| Delinquent accounts | 5 | DPD 5-45, missed payments |
-| Open events | 7 | Across all categories |
+| ID | Type | Customer-Facing | Event Count |
+|----|------|-----------------|-------------|
+| 8 | Identity | Yes | Location/base signals |
+| 3 | Transactional | Yes | Payment/DPD signals |
+| 4 | Operational | Yes | Utilization signals |
+| 5 | Behavioural | Yes | Customer behavior |
+| 6 | Environmental | Yes | External factors |
+| 1 | Observability | Yes | System health |
+| 2 | Ingestion | No | Data pipeline |
 
-### Metabase Views Ready
+### Customer Risk Scoring
+
+| Score | Category | Count |
+|-------|----------|-------|
+| 5 | Very High | 1 |
+| 4 | High | 2 |
+| 3 | Medium | 2 |
+| 2 | Low | 0 |
+| 1 | Very Low | 10 |
+
+### Metabase Views (11)
 
 | View | Purpose |
 |------|---------|
-| `v_portfolio_overview` | High-level portfolio KPIs |
-| `v_account_risk_dashboard` | Account-level risk scores and context |
-| `v_asset_telemetry_dashboard` | Asset utilization and location |
-| `v_open_events` | Active events requiring action |
-| `v_event_timeline` | Full event audit trail |
-| `v_indicator_trends` | Indicator score history |
-| `v_poi_summary` | All detected/registered POIs |
-| `v_collection_priority` | Prioritized collection queue |
+| `v_portfolio_overview` | Portfolio KPIs |
+| `v_account_risk_dashboard` | Account-level risk |
+| `v_asset_telemetry_dashboard` | Asset utilization |
+| `v_open_events` | Active events |
+| `v_event_timeline` | Event audit trail |
+| `v_indicator_trends` | Indicator history |
+| `v_poi_summary` | POI locations |
+| `v_collection_priority` | Collection queue |
+| `v_ews_risk_summary` | **EWS summary cards** |
+| `v_ews_customer_events` | **EWS detail table** |
+| `v_ews_customer_summary` | **EWS pivot view** |
 
 ---
 
@@ -85,6 +101,8 @@ Raw Data → Metrics → Indicators (1-5) → Events → Actions
 | DB Name | postgres |
 | DB User | postgres |
 | DB Password | `33SuYQUeuWyBYpHb6qSZEg` |
+| Service Key | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJodnV5ZWl1Z2hueWFwd3lraW51Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzEzNTA5MCwiZXhwIjoyMDgyNzExMDkwfQ.aIEfiuxOXYP7i7FprPvIEWOnWuCnHxlfLuCbgmXlLjs` |
+| Management API | `sbp_f69d63cf863a33ba6d9af03a599ec12f94ce7da0` |
 
 ### GitHub
 | Key | Value |
@@ -98,51 +116,10 @@ Raw Data → Metrics → Indicators (1-5) → Events → Actions
 
 ---
 
-## Metabase Connection Settings
-
-When connecting Metabase, use:
-
-```
-Host: db.rhvuyeiughnyapwykinu.supabase.co
-Port: 5432
-Database: postgres
-Username: postgres
-Password: 33SuYQUeuWyBYpHb6qSZEg
-SSL: Required
-```
-
----
-
-## Key Demo Scenarios
-
-### 1. Portfolio Health
-- Query `v_portfolio_overview`
-- Shows: 15 accounts, ₹20.18L AUM, 26.7% delinquency rate
-
-### 2. Early Warning Detection
-- Query `v_account_risk_dashboard` WHERE risk_category = 'At Risk'
-- Shows: Accounts with declining utilization + payment stress
-- Context explains: "Utilization dropped 35%, no base visit in 8 days"
-
-### 3. Event Investigation
-- Query `v_open_events` ORDER BY severity DESC
-- Drill into event context JSON for full story
-- Shows indicator movement, metric comparisons, recommendations
-
-### 4. Collection Priority
-- Query `v_collection_priority`
-- Shows: DPD accounts with last known location, risk score
-
-### 5. Asset Location Intelligence
-- Query `v_poi_summary` WHERE entity_type = 'asset'
-- Shows: Detected base, work, charging locations
-- Confidence scores, visit patterns
-
----
-
 ## Next Steps
 
-1. **Connect Metabase** to Supabase
-2. **Build demo dashboards** using the views
+1. **Build EWS Metabase dashboard** using the new views
+2. **Import full event catalog** (402 events from CSV)
 3. **Client demo** for concept validation
 4. **Sprint 1**: Real data ingestion pipeline
+
