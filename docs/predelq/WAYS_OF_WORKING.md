@@ -1,202 +1,203 @@
-# [Project] - Ways of Working
+# PredelQ - Ways of Working
+
+> Last Updated: 2025-12-30
+
+---
 
 ## Project Overview
-- **Name:** [Project]
-- **Repository:** [owner]/[repo]
-- **Stack:** [Tech stack]
-- **Created:** [Date]
 
-## Session Types
+PredelQ is a pre-delinquency management system that detects early warning signals from vehicle telemetry and financial data.
 
-| Type | Focus | Allowed | Not Allowed |
-|------|-------|---------|-------------|
-| **EXECUTION** | Code & Deploy | Code changes, schema changes, deployments, bug fixes | Planning, strategy, designs |
-| **PLANNING** | Think & Review | Sprint planning, backlog, strategy, requirements, review | Code changes, designs, deployments |
-| **UX** | Design | Wireframes, mockups, design specs | Code changes, deployments |
-
-## Planning Outputs: Two Spec Types
-
-| Spec Type | Format | Hands Off To |
-|-----------|--------|--------------|
-| **Visual/UI** | Design brief | UX Claude |
-| **Workflow/Technical** | Execution plan + Mermaid | Execution Claude |
-
-**Rule:** If Execution Claude needs to read it → Mermaid. If humans need visual iteration → UX Claude.
+**Goal:** Move delinquency prediction from 5-8 days (current) to 30-90-180 days.
 
 ---
 
-## ⚠️ CRITICAL: Build Verification
+## Core Framework
 
-**Run `npm run build` after EVERY code change. No exceptions.**
-
-### The Cycle
+### The Pipeline
 
 ```
-Make change → npm run build → Log milestone → Push → Verify deploy → Next change
+Raw Data → Metrics → Indicators → Events → Actions
 ```
 
-**Never skip the build step. Ever.**
+### Definitions
+
+#### Metric
+A standardized computed measure from raw data.
+
+| Type | Definition | Example |
+|------|------------|---------|
+| **Atomic** | Single, simple dataset | Days since last payment |
+| **Aggregate** | Rollups, running averages | 30-day avg daily km |
+| **Composite** | Multiple datasets or metrics combined | Liquidity ratio |
+
+Metrics are arbitrary numbers — they have no inherent scale.
+
+#### Indicator
+A scored signal derived from metrics. **Always on a 1-5 scale.**
+
+| Score | Meaning |
+|-------|---------|
+| 1 | Most favorable (healthy) |
+| 2 | Good |
+| 3 | Neutral / Watch |
+| 4 | Concerning |
+| 5 | Least favorable (at risk) |
+
+Scoring methods:
+- Static rules (thresholds)
+- Standard deviation splits
+- ML model output
+
+#### Event
+A state change or threshold crossing on an indicator.
+
+Triggers:
+- Indicator crosses a threshold (e.g., reaches 4)
+- Indicator changes significantly (e.g., jumps +2)
+- Trend detected (e.g., 3 consecutive increases)
+
+Events have:
+- Severity (1-5)
+- Actionable flag (yes/no)
+
+#### Action
+An intervention matched to an event. **(Post-MVP scope)**
 
 ---
 
-## ⚠️ CRITICAL: Milestone Logging (Execution)
+## Entity Hierarchy
 
-**Log a milestone after EVERY successful `npm run build`.**
-
-```markdown
-### [HH:MM] Milestone: [Step name]
-- **What:** [Files created/modified]
-- **Build:** ✅ passed
-- **Pushed:** ✅ branch | ❌ not yet
-- **Next:** [Next step]
+```
+Customer
+    └── Account (loan)
+            └── Asset (vehicle)
 ```
 
-**Why:** If session fails mid-execution, milestones show exactly where it stopped.
+- Metrics can attach to any level
+- Indicators roll up through the hierarchy
+- Events surface at the appropriate level
 
 ---
 
-## ⚠️ CRITICAL: Database Migrations (Execution)
+## Data Layers
 
-**Execution Claude runs migrations directly. Do NOT leave as manual steps.**
+| Layer | Contents | Retention |
+|-------|----------|-----------|
+| **Master Data** | Customers, accounts, assets, OEMs, models | Forever |
+| **Transaction Data** | Payments, schedules, delinquency events | Forever |
+| **Raw Data** | Telemetry (location, SOC, odometer) | 90 days hot, archive forever |
+| **Computed Data** | Metrics, indicators, events | Forever |
+| **Pipeline Data** | Definitions, runs, watermarks | 1 year hot |
 
-```python
-import requests
+---
 
-SUPABASE_PROJECT_ID = "[from CURRENT.md]"
-MANAGEMENT_TOKEN = "[from CURRENT.md]"
+## Pipeline Patterns
 
-headers = {
-    "Authorization": f"Bearer {MANAGEMENT_TOKEN}",
-    "Content-Type": "application/json"
-}
+### Processing Types
 
-def run_migration(sql):
-    r = requests.post(
-        f"https://api.supabase.com/v1/projects/{SUPABASE_PROJECT_ID}/database/query",
-        headers=headers,
-        json={"query": sql},
-        verify=False
-    )
-    return r.status_code
-```
+| Type | Trigger | Use Case |
+|------|---------|----------|
+| **Cron** | Fixed schedule | Raw data ingestion |
+| **Watermark** | Records to process | Metric computation |
+| **Triggered** | Upstream completes | Indicator scoring |
+| **Manual** | Human initiates | Backfills, one-time jobs |
+
+### Watermark Processing
+Pipelines track where they left off per entity. This handles:
+- Gaps in data (3 days missing, then data arrives)
+- Variable processing rates
+- Failure recovery
+
+---
+
+## Naming Conventions
+
+### Tables
+- Snake_case: `metric_values`, `pipeline_runs`
+- Plural for collections: `customers`, `assets`
+- Singular for definitions: `metric_definitions` (not metrics_definition)
+
+### Metrics
+- Format: `{measure}_{aggregation}_{window}`
+- Examples: `daily_km`, `soc_avg_7d`, `payment_bounce_rate_30d`
+
+### Indicators
+- Format: `{domain}_{signal}_score`
+- Examples: `utilization_health_score`, `payment_regularity_score`
+
+### Pipelines
+- Format: `{stage}_{entity}_{metric}`
+- Examples: `ingest_telemetry`, `metric_daily_km`, `indicator_utilization`
+
+---
+
+## Tech Stack
+
+| Layer | Tool | Purpose |
+|-------|------|---------|
+| **Database** | Supabase (Postgres) | Storage, views, functions |
+| **Compute** | Modal | Pipeline execution, ML training |
+| **Output** | Metabase | Dashboards, queries |
+| **Code** | GitHub | Version control, pipeline scripts |
 
 ---
 
 ## Session Protocol
 
-### Every Session Start (MANDATORY)
-1. Read WAYS_OF_WORKING.md (this file)
-2. Read CURRENT.md (credentials, state)
-3. Read LESSONS.md (recent entries)
-4. Check `docs/predelq/sessions/` for recent logs
-5. **Create session log file:** `docs/predelq/sessions/{DATE}-{type}-{NNN}.md`
-6. State session type and goal
-7. Ask "Where did we leave off?"
+### Starting a Session
+1. Read CURRENT.md for project state
+2. Read BACKLOG.md for priorities
+3. Check recent session logs
+4. State session goal
+5. Ask "Where did we leave off?"
 
-### Every Session End (MANDATORY)
-1. Summarize accomplishments
-2. Update session log with final status
-3. Update CURRENT.md with new state
-4. Fill "Promote to Project" section
-5. State clear next steps
-6. Confirm all changes pushed
+### Ending a Session
+1. Summarize what was done
+2. Update relevant docs
+3. Create session log
+4. State next steps
+5. Ask "Any lessons learned?"
 
 ---
 
-## Session Log Lifecycle
+## Claude Roles
 
-```
-1. Session starts    → Create log file from template
-2. During session    → Add milestone entries (Execution: after each build)
-3. Session ends      → Update status, fill outcomes
-4. Review phase      → Analyze logs, mark items worth keeping
-5. Planning promotes → Move items to LESSONS, BACKLOG, CURRENT
-6. Cleanup           → Archive or delete old session logs
-```
+| Role | Responsibilities | Does NOT Do |
+|------|-----------------|-------------|
+| **Planning** | Architecture, sprint planning, backlog, review | Write production code |
+| **Execution** | Build features, deploy, fix bugs | Make architecture decisions |
+| **UX** | Design interfaces, user flows | Write backend code |
 
----
-
-## Git Workflow
-
-### Branch Naming
-
-| Prefix | Use | Example |
-|--------|-----|---------|
-| `sprint-N/` | Sprint work | `sprint-3/github-tools` |
-| `fix/` | Bug fixes | `fix/chat-scroll` |
-| `experiment/` | Discovery | `experiment/modal-streaming` |
-
-### When to Branch vs Main
-
-| Change Type | Target | Why |
-|-------------|--------|-----|
-| Code changes | Branch → PR | Protect main |
-| Schema changes | Branch → PR | High risk |
-| Docs only | Main directly | Low risk |
-
-**Rule:** If it can break the build → branch.
+### Handoffs
+- Planning creates INVENTORY.md → Review → Creates PLAN.md → Execution implements
+- Execution completes → Planning reviews → Merge/iterate
 
 ---
 
-## Planning Hierarchy
+## Quality Gates
 
-| Layer | Question | Output |
-|-------|----------|--------|
-| **Discovery** | What's possible? | Insights, options |
-| **Inventory** | What exists? | Feature catalog |
-| **Strategy** | Where going? | Vision, phases |
-| **Sprint Goals** | What to prove? | Success criteria |
-| **Tasks** | How to execute? | Step-by-step plan |
+### Before Merging
+- [ ] Code executes without error
+- [ ] Tests pass (when applicable)
+- [ ] Matches execution plan
+- [ ] No hardcoded credentials
+- [ ] Pipeline runs tracked in DB
 
-### Rules
-1. Discovery when uncertain
-2. Inventory before sprints
-3. Goals before tasks
-4. Promote findings to docs
-
----
-
-## Two-Document Sprint Pattern
-
-| Document | Purpose | Lines |
-|----------|---------|-------|
-| SPRINT_N_INVENTORY.md | Design document | ~400 |
-| SPRINT_N_PLAN.md | Execution instructions | ~1600 |
-
-**Flow:**
-1. Create Inventory
-2. Review with human
-3. Create Plan (after approval)
-4. Hand to Execution
+### Before Sprint Close
+- [ ] All P0 items complete
+- [ ] Documentation updated
+- [ ] Session logs written
+- [ ] Lessons captured
 
 ---
 
-## Document Map
+## Anti-Patterns to Avoid
 
-| Document | Purpose | Updated By |
-|----------|---------|------------|
-| CURRENT.md | Live state, credentials | All sessions |
-| LESSONS.md | What we learned | All sessions |
-| BACKLOG.md | Prioritized work | Planning |
-| REVIEW.md | Review findings | Planning |
-| SCHEMA.md | Database schema | Execution |
-| CHANGELOG.md | Version history | Execution |
-| sessions/*.md | Session logs | All sessions |
-
----
-
-## Commit Convention
-
-```
-type(scope): description
-
-Types: feat, fix, docs, refactor, test, chore
-```
-
----
-
-## Communication Style
-- Be direct and specific
-- Reference document sections
-- Ask clarifying questions early
-- Summarize decisions explicitly
+| Anti-Pattern | Why Bad | Do Instead |
+|--------------|---------|------------|
+| Hardcoding credentials | Security risk | Use environment/config |
+| Skipping watermarks | Lose progress on failure | Always track state |
+| One table per metric | Schema bloat, hard to query | Use registry pattern |
+| Ignoring gaps in data | Silent data loss | Watermark-based processing |
+| Skipping session logs | Lose context | Always document |
